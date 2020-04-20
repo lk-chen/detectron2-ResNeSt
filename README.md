@@ -147,7 +147,7 @@ year={2020}
 ```
 
 ## Related
-* [ResNeSt(main)](https://github.com/zhanghang1989/ResNeSt)
+* [ResNeSt (main)](https://github.com/zhanghang1989/ResNeSt)
 * ResNeSt on ImageNet ([Gluon](https://gluon-cv.mxnet.io/model_zoo/classification.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/imagenet.html) )
 * ResNeSt on Semantic Segmentation ([Gluon](https://gluon-cv.mxnet.io/model_zoo/segmentation.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/segmentation.html))
 
