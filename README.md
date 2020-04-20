@@ -52,6 +52,9 @@ This repo contains an implementation of [ResNeSt](https://hangzhang.org/files/re
   </tr>
 </table>
 
+We train all models with FPN, SyncBN and image scale augmentation (short size of a image is pickedrandomly from 640 to 800). 1x learning rate schedule is used. All of them are reported on COCO-2017 validation dataset.
+
+
 
 ## Instance Segmentation
 <table class="tg">
@@ -59,7 +62,7 @@ This repo contains an implementation of [ResNeSt](https://hangzhang.org/files/re
     <th class="tg-0pky">Method</th>
     <th class="tg-0pky">Backbone</th>
     <th class="tg-0pky">bbox</th>
-    <th class="tg-0lax">mask</th>
+    <th class="tg-0lax">mas</th>
     <th class="tg-0pky">download</th>
   </tr>
   <tr>
@@ -107,7 +110,7 @@ This repo contains an implementation of [ResNeSt](https://hangzhang.org/files/re
   </tr>
 </table>
 
-
+All models are trained along with FPN and SyncBN. For data augmentation,input images’ shorter side are randomly scaled to one of (640, 672, 704, 736, 768, 800). All of them are reported on COCO-2017 validation dataset.
 
 
 
@@ -122,7 +125,7 @@ python tools/train_net.py  --num-gpus 8 --config-file your_config.yaml
 
 For inference
 ```shell
-python tools/train_net.py  --num-gpus 8 \
+python tools/train_net.py  \
                 --config-file your_config.yaml
                 --eval-only MODEL.WEIGHTS /path/to/checkpoint_file
 ```
@@ -142,6 +145,11 @@ journal={arXiv preprint},
 year={2020}
 }
 ```
+
+## Related
+* [ResNeSt(main)](https://github.com/zhanghang1989/ResNeSt)
+* ResNeSt on ImageNet ([Gluon](https://gluon-cv.mxnet.io/model_zoo/classification.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/imagenet.html) )
+* ResNeSt on Semantic Segmentation ([Gluon](https://gluon-cv.mxnet.io/model_zoo/segmentation.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/segmentation.html))
 
 ### Contributors
 [Chongruo Wu](https://github.com/chongruo), [Zhongyue Zhang](http://zhongyuezhang.com/), [Hang Zhang](https://hangzhang.org/)
