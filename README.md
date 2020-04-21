@@ -2,6 +2,8 @@
 
 This repo contains an implementation of [ResNeSt](https://hangzhang.org/files/resnest.pdf) on detection and instance segmentation, using [detectron2](https://github.com/facebookresearch/detectron2) framework.
 
+<a href="https://arxiv.org/pdf/2004.08955.pdf" rel="Paper"><img src="http://www.arxiv-sanity.com/static/thumbs/2004.08955v1.pdf.jpg" alt="Paper" width="100%"></a>
+
 
 ## Object Detection
 <table class="tg">
@@ -146,10 +148,10 @@ year={2020}
 }
 ```
 
-## Related
+## Related Repo
 * [ResNeSt (main)](https://github.com/zhanghang1989/ResNeSt)
-* ResNeSt on ImageNet ([Gluon](https://gluon-cv.mxnet.io/model_zoo/classification.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/imagenet.html) )
+* ResNeSt on ImageNet ([Gluon](https://gluon-cv.mxnet.io/model_zoo/classification.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/imagenet.html))
 * ResNeSt on Semantic Segmentation ([Gluon](https://gluon-cv.mxnet.io/model_zoo/segmentation.html), [pytorch](https://hangzhang.org/PyTorch-Encoding/model_zoo/segmentation.html))
 
 ### Contributors
-[Chongruo Wu](https://github.com/chongruo), [Zhongyue Zhang](http://zhongyuezhang.com/), [Hang Zhang](https://hangzhang.org/)
+[Hang Zhang](https://hangzhang.org/), [Chongruo Wu](https://github.com/chongruo), [Zhongyue Zhang](http://zhongyuezhang.com/) 
