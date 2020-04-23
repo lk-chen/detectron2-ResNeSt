@@ -17,40 +17,48 @@ This repo contains an implementation of [ResNeSt](https://hangzhang.org/files/re
     <td rowspan="4" class="tg-0pky">Faster R-CNN</td>
     <td class="tg-0pky">ResNet-50</td>
     <td class="tg-0pky">39.25</td>
-    <td class="tg-0lax">config | model | log </td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_rcnn_R_50_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_R_50_FPN_syncbn_range-scale_1x-fde56e2b.pth ">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_R_50_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNet-101</td>
     <td class="tg-0lax">41.37</td>
+     <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_rcnn_R_101_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_R_101_FPN_syncbn_range-scale_1x-57c73356.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_R_101_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNeSt-50 (<span style="color:red">ours</span>)</td>
     <td class="tg-0lax"><b>42.33</b></td>
+     <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_rcnn_ResNeSt_50_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNeSt_50_FPN_syncbn_range-scale_1x-ad123c0b.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNest_50_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNeSt-101 (<span style="color:red">ours</span>)</td>
     <td class="tg-0lax"><b>44.72</b></td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_rcnn_ResNeSt_101_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNeSt_101_FPN_syncbn_range-scale_1x-d8f284b6.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNest_101_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td rowspan="5" class="tg-0lax">Cascade R-CNN</td>
     <td class="tg-0lax">ResNet-50</td>
     <td class="tg-0lax">42.52</td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_cascade_rcnn_R_50_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_R_50_FPN_syncbn_range-scale_1x-00dcb96a.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_R_50_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNet-101</td>
     <td class="tg-0lax">44.03</td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_cascade_rcnn_R_101_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_R_101_FPN_syncbn_range-scale_1x-e13a96f7.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_R_101_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNeSt-50 (<span style="color:red">ours</span>)</td>
     <td class="tg-0lax"><b>45.41</b></td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_cascade_rcnn_ResNeSt_50_FPN_syncbn_range-scale-1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_ResNeSt_50_FPN_syncbn_range-scale-1x-e9955232.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_ResNeSt_50_FPN_syncbn_range-scale-1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNeSt-101 (<span style="color:red">ours</span>)</td>
     <td class="tg-0lax"><b>47.50</b></td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_cascade_rcnn_ResNeSt_101_FPN_syncbn_range-scale_1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_ResNeSt_101_FPN_syncbn_range-scale_1x-3627ef78.pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_cascade_rcnn_ResNeSt_101_FPN_syncbn_range-scale-1x.txt">log</a> </td>
   </tr>
   <tr>
     <td class="tg-0lax">ResNeSt-200 (<span style="color:red">ours</span>)</td>
     <td class="tg-0lax"><b>49.03</b></td>
+    <td class="tg-0lax"><a href="https://github.com/zhanghang1989/detectron2-ResNeSt/blob/model_zoo/configs/COCO-Detection/faster_cascade_rcnn_ResNeSt_200_FPN_syncbn_range-scale-1x.yaml">config</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNeSt_200_FPN_syncbn_range-scale_1x-1be2a87e.pth .pth">model</a> | <a href="https://hangzh.s3.amazonaws.com/detectron/faster_rcnn_ResNeSt_200_FPN_syncbn_range-scale_1x.txt">log</a> </td>
   </tr>
 </table>
 
