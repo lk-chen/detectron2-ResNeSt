@@ -14,9 +14,8 @@ __all__ = ["register_pascal_voc"]
 
 # fmt: off
 CLASS_NAMES = [
-    "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
-    "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person",
-    "pottedplant", "sheep", "sofa", "train", "tvmonitor",
+    'car', 'van', 'truck', 'pedestrian', 'person',
+    'cyclist', 'tram', 'misc', 'dontcare', 'person_sitting'
 ]
 # fmt: on
 
@@ -37,7 +36,7 @@ def load_voc_instances(dirname: str, split: str):
     dicts = []
     for fileid in fileids:
         anno_file = os.path.join(annotation_dirname, fileid + ".xml")
-        jpeg_file = os.path.join(dirname, "JPEGImages", fileid + ".jpg")
+        jpeg_file = os.path.join(dirname, "JPEGImages", fileid + ".png")
 
         with PathManager.open(anno_file) as f:
             tree = ET.parse(f)
@@ -66,7 +65,7 @@ def load_voc_instances(dirname: str, split: str):
             bbox[0] -= 1.0
             bbox[1] -= 1.0
             instances.append(
-                {"category_id": CLASS_NAMES.index(cls), "bbox": bbox, "bbox_mode": BoxMode.XYXY_ABS}
+                {"category_id": CLASS_NAMES.index(cls.lower()), "bbox": bbox, "bbox_mode": BoxMode.XYXY_ABS}
             )
         r["annotations"] = instances
         dicts.append(r)
