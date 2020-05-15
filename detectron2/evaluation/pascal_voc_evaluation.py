@@ -136,10 +136,10 @@ def parse_rec(filename):
         obj_struct["difficult"] = int(obj.find("difficult").text)
         bbox = obj.find("bndbox")
         obj_struct["bbox"] = [
-            int(bbox.find("xmin").text),
-            int(bbox.find("ymin").text),
-            int(bbox.find("xmax").text),
-            int(bbox.find("ymax").text),
+            float(bbox.find("xmin").text),
+            float(bbox.find("ymin").text),
+            float(bbox.find("xmax").text),
+            float(bbox.find("ymax").text),
         ]
         objects.append(obj_struct)
 
@@ -285,6 +285,9 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     # compute precision recall
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
+    if npos == 0:
+      logger = logging.getLogger(__name__)
+      logger.warning('npos is zero')
     rec = tp / float(npos)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
