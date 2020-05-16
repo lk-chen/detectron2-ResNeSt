@@ -101,7 +101,8 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                         ovthresh=thresh / 100.0,
                         use_07_metric=self._is_2007,
                     )
-                    aps[thresh].append(ap * 100)
+                    if rec is not None:
+                        aps[thresh].append(ap * 100)
 
         ret = OrderedDict()
         mAP = {iou: np.mean(x) for iou, x in aps.items()}
@@ -208,6 +209,8 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
         lines = f.readlines()
     imagenames = [x.strip() for x in lines]
 
+    logger = logging.getLogger(__name__)
+
     # load annots
     recs = {}
     for imagename in imagenames:
@@ -217,7 +220,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     class_recs = {}
     npos = 0
     for imagename in imagenames:
-        R = [obj for obj in recs[imagename] if obj["name"] == classname]
+        R = [obj for obj in recs[imagename] if obj["name"].lower() == classname]
         bbox = np.array([x["bbox"] for x in R])
         difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
@@ -286,8 +289,8 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
     if npos == 0:
-      logger = logging.getLogger(__name__)
-      logger.warning('npos is zero')
+      # happen because this |classname| is not detected in this data
+      return None, None, None
     rec = tp / float(npos)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
