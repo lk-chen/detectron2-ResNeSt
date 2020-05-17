@@ -98,4 +98,4 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         Returns:
             dict: has a key "segm", whose value is a dict of "AP", "AP50", and "AP75".
         """
-        return None
+        return {}
