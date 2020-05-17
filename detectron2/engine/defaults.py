@@ -503,7 +503,8 @@ Alternatively, you can call evaluation functions yourself (see Colab balloon tut
                     results_i
                 )
                 logger.info("Evaluation results for {} in csv format:".format(dataset_name))
-                print_csv_format(results_i)
+                logger.warning('Skipping printing CSV')
+                # print_csv_format(results_i)
 
         if len(results) == 1:
             results = list(results.values())[0]
