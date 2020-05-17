@@ -60,7 +60,10 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
             boxes = instances.pred_boxes.tensor.numpy()
             scores = instances.scores.tolist()
             classes = instances.pred_classes.tolist()
-            path = 'detectron2/evaluation/eval_kitti/build/results/exp1/data/'
+            current_file_dir = os.path.dirname(os.path.abspath(__file__))
+            proj_dir = os.path.join(current_file_dir, '../../../')
+            path = os.path.join(proj_dir, 'eval_kitti/build/results/exp1/data/')
+            os.makedirs(path, exist_ok=True)
             with open(path + image_id + ".txt", "w") as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=' ', quoting=csv.QUOTE_MINIMAL)
                 for box, score, cls in zip(boxes, scores, classes):
