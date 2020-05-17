@@ -73,19 +73,11 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                     )
                     detection = {}
                     detection['label'] = CLASS_NAMES[cls]
-                    detection['left']  = xmin
-                    detection['right']  = xmax
-                    detection['top']  = ymin
-                    detection['bottom']  = ymax
                     kitti_row = [-1] * 16
                     kitti_row[0] = detection['label']
                     kitti_row[1] = DEFAULT_TRUNCATED
                     kitti_row[2] = DEFAULT_OCCLUDED
-                    x1 = detection['left']
-                    x2 = detection['right']
-                    y1 = detection['top']
-                    y2 = detection['bottom']
-                    kitti_row[4:8] = x1, y1, x2, y2
+                    kitti_row[4:8] = xmin, ymin, xmax, ymax
                     kitti_row[15] = score
                     csvwriter.writerow(kitti_row)
 
