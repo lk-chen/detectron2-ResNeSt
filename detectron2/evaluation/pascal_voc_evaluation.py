@@ -84,11 +84,6 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                     kitti_row[15] = score
                     csvwriter.writerow(kitti_row)
 
-            print(input)
-            print(instances)
-            print("classes")
-            print(str(classes))
-
     def evaluate(self):
         """
         Returns:
