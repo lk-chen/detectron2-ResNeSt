@@ -21,7 +21,7 @@ DEFAULT_TRUNCATED = 0.0 # 0% truncated
 DEFAULT_OCCLUDED = 0    # fully visible
 
 CLASS_NAMES = [
-    'car', 'van', 'truck', 'pedestrian', 'person',
+    'car', 'van', 'truck', 'pedestrian', 'pedestrian',
     'cyclist', 'tram', 'misc', 'dontcare', 'person_sitting'
 ]
 
