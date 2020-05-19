@@ -19,7 +19,7 @@ def setup(args):
     # Find a model from detectron2's model zoo. You can use the https://dl.fbaipublicfiles... url as well
     # cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     # cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file("PascalVOC-Detection/faster_rcnn_R_50_C4.yaml"))
+    cfg.merge_from_file(args.config_file)
     cfg.MODEL.WEIGHTS = os.path.join("output/model_final.pth")
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
     return cfg
