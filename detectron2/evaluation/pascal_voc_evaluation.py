@@ -94,7 +94,6 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         output_lines = output.decode("utf-8")
-        print(output_lines)
         split_word = ' (%): '
         metrics = OrderedDict()
         for line in output_lines.split('\n'):
@@ -102,5 +101,4 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                 metrics_name, val = line.split(split_word)
                 easy, medium, hard = val.split(' / ')
                 metrics[metrics_name] = {'easy': float(easy), 'medium': float(medium), 'hard': float(hard)}
-        print(metrics)
         return metrics

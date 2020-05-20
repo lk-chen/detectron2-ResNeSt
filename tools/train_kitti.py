@@ -44,13 +44,21 @@ def main(args):
     If you'd like to do anything fancier than the standard training logic,
     consider writing your own training loop or subclassing the trainer.
     """
-    im = cv2.imread("datasets/VOC2012/JPEGImages/000052.png")
+    # im = cv2.imread("datasets/VOC2012/JPEGImages/000052.png")  # many cars
+    # im = cv2.imread("datasets/VOC2012/JPEGImages/000043.png")  # many ped
+    # im = cv2.imread("datasets/VOC2012/JPEGImages/007318.png")  # many cycle
+    im = cv2.imread("datasets/VOC2012/JPEGImages/004384.png")  # many cycle
     predictor = DefaultPredictor(cfg)
     outputs = predictor(im)
-    print(outputs["instances"].pred_classes)
+    metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
+    print(f'class names are: {metadata.get("thing_classes")}')
+    pred_class = outputs["instances"].pred_classes
+    print(f'pred_classes are: {pred_class}')
+    readable_pred_class = [metadata.get("thing_classes")[idx] for idx in pred_class.tolist()]
+    print(f'Human readable pred_class: {readable_pred_class}')
     print(outputs["instances"].pred_boxes)
     print(MetadataCatalog.get(cfg.DATASETS.TRAIN[0]))
-    v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
+    v = Visualizer(im[:, :, ::-1], metadata, scale=1.2)
     v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
     v.save("prediction.png")
 
