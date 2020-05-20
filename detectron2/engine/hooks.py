@@ -20,7 +20,6 @@ from detectron2.utils.events import EventStorage, EventWriter
 from detectron2.evaluation import inference_context
 from detectron2.utils.logger import log_every_n_seconds
 from detectron2.data import DatasetMapper, build_detection_test_loader
-import detectron2.utils.comm as comm
 
 import numpy as np
 from .train_loop import HookBase
@@ -47,6 +46,7 @@ class LossEvalHook(HookBase):
         self._model = model
         self._period = eval_period
         self._data_loader = data_loader
+        self._latest_mean_loss = None
     
     def _do_loss_eval(self):
         # Copying inference_on_dataset from evaluator.py
@@ -78,10 +78,6 @@ class LossEvalHook(HookBase):
                 )
             loss_batch = self._get_loss(inputs)
             losses.append(loss_batch)
-        mean_loss = np.mean(losses)
-        print('validation mean loss: ', mean_loss)
-        self.trainer.storage.put_scalar('validation_loss', mean_loss)
-        comm.synchronize()
 
         return losses
             
@@ -100,7 +96,12 @@ class LossEvalHook(HookBase):
         next_iter = self.trainer.iter + 1
         is_final = next_iter == self.trainer.max_iter
         if is_final or (self._period > 0 and next_iter % self._period == 0):
-            self._do_loss_eval()
+            losses = self._do_loss_eval()
+            self._latest_mean_loss = np.mean(losses)
+            print('validation mean loss: ', self._latest_mean_loss)
+            comm.synchronize()
+        if self._latest_mean_loss is not None:
+            self.trainer.storage.put_scalar('validation_loss', self._latest_mean_loss, smoothing_hint=False)
         self.trainer.storage.put_scalars(timetest=12)
 
 class CallbackHook(HookBase):
