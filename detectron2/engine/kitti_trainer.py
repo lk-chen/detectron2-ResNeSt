@@ -18,7 +18,8 @@ class KittiTrainer(DefaultTrainer):
             build_detection_test_loader(
                 self.cfg,
                 self.cfg.DATASETS.TEST[0],
-                DatasetMapper(self.cfg,True)
+                DatasetMapper(self.cfg,True),
+                batch_size=self.cfg.SOLVER.IMS_PER_BATCH
             )
         ))
         return hooks
