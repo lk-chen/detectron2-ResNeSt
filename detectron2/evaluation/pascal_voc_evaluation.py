@@ -11,6 +11,8 @@ from collections import OrderedDict, defaultdict
 from functools import lru_cache
 import torch
 from fvcore.common.file_io import PathManager
+import subprocess
+from collections import OrderedDict
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils import comm
@@ -88,4 +90,17 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         Returns:
             dict: has a key "segm", whose value is a dict of "AP", "AP50", and "AP75".
         """
-        return {}
+        bashCommand = "bash ./run_evaluation.sh"
+        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        output_lines = output.decode("utf-8")
+        print(output_lines)
+        split_word = ' (%): '
+        metrics = OrderedDict()
+        for line in output_lines.split('\n'):
+            if split_word in line:
+                metrics_name, val = line.split(split_word)
+                easy, medium, hard = val.split(' / ')
+                metrics[metrics_name] = {'easy': float(easy), 'medium': float(medium), 'hard': float(hard)}
+        print(metrics)
+        return metrics
