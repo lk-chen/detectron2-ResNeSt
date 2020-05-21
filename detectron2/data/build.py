@@ -375,7 +375,7 @@ def build_detection_test_loader(cfg, dataset_name, mapper=None, batch_size=1):
     sampler = samplers.InferenceSampler(len(dataset))
     # Always use 1 image per worker during inference since this is the
     # standard when reporting inference time in papers.
-    batch_sampler = torch.utils.data.sampler.BatchSampler(sampler, batch_size, drop_last=False)
+    batch_sampler = torch.utils.data.sampler.BatchSampler(sampler, batch_size, drop_last=True)
 
     data_loader = torch.utils.data.DataLoader(
         dataset,
