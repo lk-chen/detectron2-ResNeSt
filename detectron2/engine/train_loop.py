@@ -262,6 +262,7 @@ class SimpleTrainer(TrainerBase):
                 data_time = np.max([x.pop("data_time") for x in all_metrics_dict])
                 self.storage.put_scalar("data_time", data_time)
 
+            # print(f'all metrics: {all_metrics_dict}')
             # average the rest metrics
             metrics_dict = {
                 k: np.mean([x[k] for x in all_metrics_dict]) for k in all_metrics_dict[0].keys()
