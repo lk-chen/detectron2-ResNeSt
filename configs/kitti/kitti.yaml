@@ -19,7 +19,7 @@ SOLVER:
   MAX_ITER: 1000
   WARMUP_ITERS: 10
   GAMMA: 0.01
-  IMS_PER_BATCH: 16
+  IMS_PER_BATCH: 8
   BASE_LR: 0.005
 TEST:
   EVAL_PERIOD: 0  # eval the model during training, 0 to disable
