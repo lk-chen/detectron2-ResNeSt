@@ -88,8 +88,7 @@ class LossEvalHook(HookBase):
             k: v.detach().cpu().item() if isinstance(v, torch.Tensor) else float(v)
             for k, v in metrics_dict.items()
         }
-        # print(f'val lost: {metrics_dict}')
-        total_losses_reduced = np.mean([v for v in metrics_dict.values()])
+        total_losses_reduced = sum([v for v in metrics_dict.values()])
         return total_losses_reduced
         
         
