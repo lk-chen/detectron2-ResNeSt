@@ -13,6 +13,9 @@ __all__ = ["register_pascal_voc"]
 
 
 # fmt: off
+ENABLING_CLASSES = [
+    'car', 'pedestrain', 'cyclist', 'person',
+]
 CLASS_NAMES = [
     'car', 'van', 'truck', 'pedestrian', 'person',
     'cyclist', 'tram', 'misc', 'dontcare', 'person_sitting'
@@ -64,6 +67,9 @@ def load_voc_instances(dirname: str, split: str):
             # In coordinate space this is represented by (xmin=0, xmax=W)
             bbox[0] -= 1.0
             bbox[1] -= 1.0
+            # Only consider enabled classes
+            if cls.lower() not in ENABLING_CLASSES:
+                continue
             instances.append(
                 {"category_id": CLASS_NAMES.index(cls.lower()), "bbox": bbox, "bbox_mode": BoxMode.XYXY_ABS}
             )
