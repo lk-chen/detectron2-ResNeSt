@@ -165,7 +165,7 @@ def gp(fm1, fm2, scope):
     h, w = fm1.shape[1], fm1.shape[2]
     global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
-    output = (global_ctx * fm2) + torch.nn.Upsample((h, w), mode='bilinear')(fm1)
+    output = (global_ctx * fm2) + torch.nn.functional.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
 
