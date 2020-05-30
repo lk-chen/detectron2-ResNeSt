@@ -50,6 +50,35 @@ class NASFPN(Backbone):
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
+        print("input shapes")
+        print(input_shapes)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         in_strides = [input_shapes[f].stride for f in in_features]
         in_channels = [input_shapes[f].channels for f in in_features]
 
@@ -165,13 +194,28 @@ def gp(fm1, fm2):
     h, w = fm1.shape[1], fm1.shape[2]
     global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
-    output = (global_ctx * fm2) + torch.nn.functional.interpolate(fm1, (h, w), mode='bilinear')
+    output = (global_ctx * fm2) + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
 def sum_fm(fm1, fm2):
     h, w = fm2.shape[1], fm2.shape[2]
-    output = fm2 + torch.nn.functional.interpolate(fm1, (h, w), mode='bilinear')
+    output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
+
+
+class RCB(nn.Module):
+    """
+    This module used to implement rcb in NAS-FPN.
+    """
+    def __init__(self, in_channels, out_channels, norm):
+        super().__init__()
+        self.R = nn.ReLU()
+        self.C = Conv2D(in_channels, out_channels, 3)
+        self.B = get_norm(norm, out_channels)
+
+    def forward(self, x):
+        return self.B(self.C(self.R(x)))
+
 
 class LastLevelMaxPool(nn.Module):
     """
