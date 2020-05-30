@@ -161,6 +161,13 @@ def _assert_strides_are_log2_contiguous(strides):
             stride, strides[i - 1]
         )
 
+def gp(fm1, fm2, scope):
+    h, w = fm1.shape[1], fm1.shape[2]
+    global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
+    global_ctx = torch.sigmoid(global_ctx)
+    output = (global_ctx * fm2) + torch.nn.Upsample((h, w), mode='bilinear')(fm1)
+    return output
+
 
 class LastLevelMaxPool(nn.Module):
     """
