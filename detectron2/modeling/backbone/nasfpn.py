@@ -161,13 +161,17 @@ def _assert_strides_are_log2_contiguous(strides):
             stride, strides[i - 1]
         )
 
-def gp(fm1, fm2, scope):
+def gp(fm1, fm2):
     h, w = fm1.shape[1], fm1.shape[2]
     global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
     output = (global_ctx * fm2) + torch.nn.functional.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
+def sum_fm(fm1, fm2):
+    h, w = fm2.shape[1], fm2.shape[2]
+    output = fm2 + torch.nn.functional.interpolate(fm1, (h, w), mode='bilinear')
+    return output
 
 class LastLevelMaxPool(nn.Module):
     """
