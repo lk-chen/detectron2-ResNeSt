@@ -1,0 +1,14 @@
+_BASE_: "kitti.yaml"
+MODEL:
+  WEIGHTS: "./output/model_final.pth"
+DATASETS:
+  TRAIN: ('tsinghua_cyclist_train',)  # tsinghua_cyclist_small_train, tsinghua_cyclist_train
+  TEST: ('tsinghua_cyclist_small_val',)     # tsinghua_cyclist_small_val, tsinghua_cyclist_val
+SOLVER:
+  STEPS: (12000, 16000)
+  MAX_ITER: 300
+  WARMUP_ITERS: 10
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.005
+# TEST:
+#   EVAL_PERIOD: 1000  # eval the model during training, 0 to disable
