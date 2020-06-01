@@ -93,7 +93,10 @@ class NASFPN(Backbone):
         self.top_block = top_block
         self.in_features = in_features
         self.bottom_up = bottom_up
-        self.RCB = RCB(in_channels, out_channels, norm)
+        # self.RCB = RCB(in_channels, out_channels, norm)
+        self.rcbs = {
+            k: RCB(out_channels, out_channels, 'BN') for k in ['GP_P5_P3', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'SUM5', 'SUM4_RCB_GP1']
+        }
         # Return feature names are "p<stage>", like ["p2", "p3", ..., "p6"]
         self._out_feature_strides = {"p{}".format(int(math.log2(s))): s for s in in_strides}
         # top block output feature maps.
@@ -136,16 +139,16 @@ class NASFPN(Backbone):
         }
 
         GP_P5_P3 = gp(lateral_features_dict["res5"], lateral_features_dict["res3"])
-        GP_P5_P3_RCB = self.RCB(GP_P5_P3)
+        GP_P5_P3_RCB = self.rcbs['GP_P5_P3'](GP_P5_P3)
         SUM1 = sum_fm(GP_P5_P3_RCB, lateral_features_dict["res3"])
-        SUM1_RCB = self.RCB(SUM1)
+        SUM1_RCB = self.rcbs['SUM1'](SUM1)
         SUM2 = sum_fm(SUM1_RCB, lateral_features_dict["res2"])
-        SUM2_RCB = self.RCB(SUM2)
+        SUM2_RCB = self.rcbs['SUM2'](SUM2)
         SUM3 = sum_fm(SUM2_RCB, SUM1_RCB)
-        SUM3_RCB = self.RCB(SUM3)
+        SUM3_RCB = self.rcbs['SUM3'](SUM3)
         SUM3_RCB_GP = gp(SUM2_RCB, SUM3_RCB)
         SUM4 = sum_fm(SUM3_RCB_GP, lateral_features_dict["res4"])
-        SUM4_RCB = self.RCB(SUM4)
+        SUM4_RCB = self.rcbs['SUM4'](SUM4)
         SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
 
         P6 = None
@@ -155,13 +158,14 @@ class NASFPN(Backbone):
             # we don't have result, so use bottom_up_features["res5"]
             P6 = (self.top_block(top_block_in_feature))
         SUM5 = sum_fm(SUM4_RCB_GP, P6)
-        SUM5_RCB = self.RCB(SUM5)
+        SUM5_RCB = self.rcbs['SUM5'](SUM5)
         h, w = bottom_up_features["res5"].shape[1], bottom_up_features["res5"].shape[2]
         SUM5_RCB_resize = F.interpolate(SUM5_RCB, size=(h, w), mode='bilinear')
         SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
-        SUM4_RCB_GP1_RCB = self.RCB(SUM4_RCB_GP1)
+        SUM4_RCB_GP1_RCB = self.rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
 
-        res = {"p2": SUM_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB, "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
+        res = {"p2": SUM_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
+               "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
         print("res: ")
         print(res)
         return res
@@ -184,6 +188,7 @@ def _assert_strides_are_log2_contiguous(strides):
             stride, strides[i - 1]
         )
 
+
 def gp(fm1, fm2):
     # fm.shape is like [batch_size, c, h, w]
     print("fm1 shape: " + str(fm1.shape))
@@ -199,6 +204,7 @@ def gp(fm1, fm2):
     output = op1 + op2
     return output
 
+
 def sum_fm(fm1, fm2):
     h, w = fm2.shape[2], fm2.shape[3]
     output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
@@ -209,16 +215,17 @@ class RCB(nn.Module):
     """
     This module used to implement rcb in NAS-FPN.
     """
+
     def __init__(self, in_channels, out_channels, norm):
         super().__init__()
-        self.R = nn.ReLU()
-        self.C = Conv2d(in_channels, out_channels, 3)
-        self.B = get_norm(norm, out_channels)
+        self.C = Conv2d(in_channels, out_channels, 3, bias=False,
+                        norm=get_norm(norm, out_channels)).cuda()
+        weight_init.c2_xavier_fill(self.C)
         print("RCB created")
 
     def forward(self, x):
         print("RCB forward called")
-        return self.B(self.C(self.R(x)))
+        return self.C(F.relu(x))
 
 
 class LastLevelMaxPool(nn.Module):
