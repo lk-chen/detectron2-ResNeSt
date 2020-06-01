@@ -1,2 +1,2 @@
 cd ../
-bash ./evaluation_detectron2.sh
+bash ./evaluation_detectron2.sh $1
