@@ -147,6 +147,22 @@ _C.MODEL.FPN.NORM = ""
 # Types for fusing the FPN top-down and lateral features. Can be either "sum" or "avg"
 _C.MODEL.FPN.FUSE_TYPE = "sum"
 
+# ---------------------------------------------------------------------------- #
+# NASFPN options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.NASFPN = CN()
+# Names of the input feature maps to be used by NASFPN
+# They must have contiguous power of 2 strides
+# e.g., ["res2", "res3", "res4", "res5"]
+_C.MODEL.NASFPN.IN_FEATURES = []
+_C.MODEL.NASFPN.OUT_CHANNELS = 256
+
+# Options: "" (no norm), "GN"
+_C.MODEL.NASFPN.NORM = ""
+
+# Types for fusing the NASFPN top-down and lateral features. Can be either "sum" or "avg"
+_C.MODEL.NASFPN.FUSE_TYPE = "sum"
+
 
 # ---------------------------------------------------------------------------- #
 # Proposal generator options
@@ -484,12 +500,12 @@ _C.MODEL.RESNETS.DEFORM_MODULATED = False
 _C.MODEL.RESNETS.DEFORM_NUM_GROUPS = 1
 
 
-# Apply deep stem 
+# Apply deep stem
 _C.MODEL.RESNETS.DEEP_STEM = False
 # Apply avg after conv2 in the BottleBlock
 # When AVD=True, the STRIDE_IN_1X1 should be False
 _C.MODEL.RESNETS.AVD = False
-# Apply avg_down to the downsampling layer for residual path 
+# Apply avg_down to the downsampling layer for residual path
 _C.MODEL.RESNETS.AVG_DOWN = False
 
 # Radix in ResNeSt

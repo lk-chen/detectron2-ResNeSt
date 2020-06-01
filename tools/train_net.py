@@ -60,6 +60,7 @@ class Trainer(KittiTrainer):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         evaluator_list = []
         evaluator_type = MetadataCatalog.get(dataset_name).evaluator_type
+        print("Evaluator type: {}".format(evaluator_type))
         if evaluator_type in ["sem_seg", "coco_panoptic_seg"]:
             evaluator_list.append(
                 SemSegEvaluator(
@@ -80,6 +81,7 @@ class Trainer(KittiTrainer):
             ), "CityscapesEvaluator currently do not work with multiple machines."
             return CityscapesEvaluator(dataset_name)
         elif evaluator_type == "pascal_voc":
+            print("skip evlauation")
             return PascalVOCDetectionEvaluator(dataset_name)
         elif evaluator_type == "lvis":
             return LVISEvaluator(dataset_name, cfg, True, output_folder)
