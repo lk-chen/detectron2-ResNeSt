@@ -52,8 +52,6 @@ class NASFPN(Backbone):
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
-        print("input shapes new")
-        print(input_shapes)
 
         in_strides = [input_shapes[f].stride for f in in_features]
         in_channels = [input_shapes[f].channels for f in in_features]
@@ -116,11 +114,10 @@ class NASFPN(Backbone):
                 paper convention: "p<stage>", where stage has stride = 2 ** stage e.g.,
                 ["p2", "p3", ..., "p6"].
         """
-        print("Get into NASFPN forward")
+        # print("Get into NASFPN forward")
 
         # Reverse feature maps into top-down order (from low to high resolution)
         bottom_up_features = self.bottom_up(x)
-        print(bottom_up_features.keys())
 
         # following features have different num_channels, need to convert
         lateral_features_dict = {
@@ -140,8 +137,6 @@ class NASFPN(Backbone):
         SUM4_RCB = self.rcbs['SUM4'](SUM4)
         SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
 
-        print(self.top_block.in_feature)
-        print(bottom_up_features.keys())
         top_block_in_feature = bottom_up_features['res5']
         # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
         # we don't have result, so use bottom_up_features["res5"]
@@ -154,10 +149,8 @@ class NASFPN(Backbone):
         SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
         SUM4_RCB_GP1_RCB = self.rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
 
-        res = {"p2": SUM_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
+        res = {"p2": SUM2_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
                "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
-        print("res: ")
-        print(res)
         return res
 
     def output_shape(self):
@@ -181,16 +174,11 @@ def _assert_strides_are_log2_contiguous(strides):
 
 def gp(fm1, fm2):
     # fm.shape is like [batch_size, c, h, w]
-    print("fm1 shape: " + str(fm1.shape))
-    print("fm2 shape: " + str(fm2.shape))
     global_ctx = torch.mean(fm1, (2, 3), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
-    print("global_ctx shape: " + str(global_ctx.shape))
     h, w = fm2.shape[2], fm2.shape[3]
     op2 = F.interpolate(fm1, (h, w), mode='bilinear')
-    print("op2 shape: " + str(op2.shape))
     op1 = (global_ctx * fm2)
-    print("op1 shape: " + str(op1.shape))
     output = op1 + op2
     return output
 
@@ -214,7 +202,6 @@ class RCB(nn.Module):
         print("RCB created")
 
     def forward(self, x):
-        print("RCB forward called")
         return self.C(F.relu(x))
 
 
