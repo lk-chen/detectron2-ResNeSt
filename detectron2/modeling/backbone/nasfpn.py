@@ -3,6 +3,7 @@ import math
 import fvcore.nn.weight_init as weight_init
 import torch.nn.functional as F
 from torch import nn
+import torch
 
 from detectron2.layers import Conv2d, ShapeSpec, get_norm
 
@@ -47,77 +48,42 @@ class NASFPN(Backbone):
         """
         super(NASFPN, self).__init__()
         assert isinstance(bottom_up, Backbone)
+        assert top_block is not None, "must pass top_block, otherwise P6 doesn't exist"
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
-        print("input shapes")
-        print(input_shapes)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         in_strides = [input_shapes[f].stride for f in in_features]
         in_channels = [input_shapes[f].channels for f in in_features]
 
         _assert_strides_are_log2_contiguous(in_strides)
         lateral_convs = []
-        output_convs = []
 
         use_bias = norm == ""
-        for idx, in_channels in enumerate(in_channels):
+        for idx, in_channels_ in enumerate(in_channels):
             lateral_norm = get_norm(norm, out_channels)
             output_norm = get_norm(norm, out_channels)
 
             lateral_conv = Conv2d(
-                in_channels, out_channels, kernel_size=1, bias=use_bias, norm=lateral_norm
-            )
-            output_conv = Conv2d(
-                out_channels,
-                out_channels,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias=use_bias,
-                norm=output_norm,
+                in_channels_, out_channels, kernel_size=1, bias=use_bias, norm=lateral_norm
             )
             weight_init.c2_xavier_fill(lateral_conv)
-            weight_init.c2_xavier_fill(output_conv)
             stage = int(math.log2(in_strides[idx]))
             self.add_module("fpn_lateral{}".format(stage), lateral_conv)
-            self.add_module("fpn_output{}".format(stage), output_conv)
 
             lateral_convs.append(lateral_conv)
-            output_convs.append(output_conv)
         # Place convs into top-down order (from low to high resolution)
         # to make the top-down computation in forward clearer.
         self.lateral_convs = lateral_convs[::-1]
-        self.output_convs = output_convs[::-1]
+        self.lateral_conv_p6 = Conv2d(
+            in_channels[-1], out_channels, kernel_size=1, bias=use_bias, norm=get_norm(norm, out_channels))
         self.top_block = top_block
         self.in_features = in_features
         self.bottom_up = bottom_up
+        # self.RCB = RCB(in_channels, out_channels, norm)
+        self.rcbs = {
+            k: RCB(out_channels, out_channels, 'BN') for k in ['GP_P5_P3', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'SUM5', 'SUM4_RCB_GP1']
+        }
         # Return feature names are "p<stage>", like ["p2", "p3", ..., "p6"]
         self._out_feature_strides = {"p{}".format(int(math.log2(s))): s for s in in_strides}
         # top block output feature maps.
@@ -148,29 +114,44 @@ class NASFPN(Backbone):
                 paper convention: "p<stage>", where stage has stride = 2 ** stage e.g.,
                 ["p2", "p3", ..., "p6"].
         """
+        # print("Get into NASFPN forward")
+
         # Reverse feature maps into top-down order (from low to high resolution)
         bottom_up_features = self.bottom_up(x)
-        x = [bottom_up_features[f] for f in self.in_features[::-1]]
-        results = []
-        prev_features = self.lateral_convs[0](x[0])
-        results.append(self.output_convs[0](prev_features))
-        for features, lateral_conv, output_conv in zip(
-            x[1:], self.lateral_convs[1:], self.output_convs[1:]
-        ):
-            top_down_features = F.interpolate(prev_features, scale_factor=2, mode="nearest")
-            lateral_features = lateral_conv(features)
-            prev_features = lateral_features + top_down_features
-            if self._fuse_type == "avg":
-                prev_features /= 2
-            results.insert(0, output_conv(prev_features))
 
-        if self.top_block is not None:
-            top_block_in_feature = bottom_up_features.get(self.top_block.in_feature, None)
-            if top_block_in_feature is None:
-                top_block_in_feature = results[self._out_features.index(self.top_block.in_feature)]
-            results.extend(self.top_block(top_block_in_feature))
-        assert len(self._out_features) == len(results)
-        return dict(zip(self._out_features, results))
+        # following features have different num_channels, need to convert
+        lateral_features_dict = {
+            f: self.lateral_convs[idx](bottom_up_features[f]) for idx, f in enumerate(self.in_features[::-1])
+        }
+
+        GP_P5_P3 = gp(lateral_features_dict["res5"], lateral_features_dict["res3"])
+        GP_P5_P3_RCB = self.rcbs['GP_P5_P3'](GP_P5_P3)
+        SUM1 = sum_fm(GP_P5_P3_RCB, lateral_features_dict["res3"])
+        SUM1_RCB = self.rcbs['SUM1'](SUM1)
+        SUM2 = sum_fm(SUM1_RCB, lateral_features_dict["res2"])
+        SUM2_RCB = self.rcbs['SUM2'](SUM2)
+        SUM3 = sum_fm(SUM2_RCB, SUM1_RCB)
+        SUM3_RCB = self.rcbs['SUM3'](SUM3)
+        SUM3_RCB_GP = gp(SUM2_RCB, SUM3_RCB)
+        SUM4 = sum_fm(SUM3_RCB_GP, lateral_features_dict["res4"])
+        SUM4_RCB = self.rcbs['SUM4'](SUM4)
+        SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
+
+        top_block_in_feature = bottom_up_features['res5']
+        # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
+        # we don't have result, so use bottom_up_features["res5"]
+        P6 = (self.top_block(top_block_in_feature))
+        P6 = self.lateral_conv_p6(P6)
+        SUM5 = sum_fm(SUM4_RCB_GP, P6)
+        SUM5_RCB = self.rcbs['SUM5'](SUM5)
+        h, w = bottom_up_features["res5"].shape[1], bottom_up_features["res5"].shape[2]
+        SUM5_RCB_resize = F.interpolate(SUM5_RCB, size=(h, w), mode='bilinear')
+        SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
+        SUM4_RCB_GP1_RCB = self.rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
+
+        res = {"p2": SUM2_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
+               "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
+        return res
 
     def output_shape(self):
         return {
@@ -190,15 +171,20 @@ def _assert_strides_are_log2_contiguous(strides):
             stride, strides[i - 1]
         )
 
+
 def gp(fm1, fm2):
-    h, w = fm1.shape[1], fm1.shape[2]
-    global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
+    # fm.shape is like [batch_size, c, h, w]
+    global_ctx = torch.mean(fm1, (2, 3), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
-    output = (global_ctx * fm2) + F.interpolate(fm1, (h, w), mode='bilinear')
+    h, w = fm2.shape[2], fm2.shape[3]
+    op2 = F.interpolate(fm1, (h, w), mode='bilinear')
+    op1 = (global_ctx * fm2)
+    output = op1 + op2
     return output
 
+
 def sum_fm(fm1, fm2):
-    h, w = fm2.shape[1], fm2.shape[2]
+    h, w = fm2.shape[2], fm2.shape[3]
     output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
@@ -207,14 +193,16 @@ class RCB(nn.Module):
     """
     This module used to implement rcb in NAS-FPN.
     """
+
     def __init__(self, in_channels, out_channels, norm):
         super().__init__()
-        self.R = nn.ReLU()
-        self.C = Conv2D(in_channels, out_channels, 3)
-        self.B = get_norm(norm, out_channels)
+        self.C = Conv2d(in_channels, out_channels, 3, bias=False,
+                        norm=get_norm(norm, out_channels)).cuda()
+        weight_init.c2_xavier_fill(self.C)
+        print("RCB created")
 
     def forward(self, x):
-        return self.B(self.C(self.R(x)))
+        return self.C(F.relu(x))
 
 
 class LastLevelMaxPool(nn.Module):
@@ -229,7 +217,7 @@ class LastLevelMaxPool(nn.Module):
         self.in_feature = "p5"
 
     def forward(self, x):
-        return [F.max_pool2d(x, kernel_size=1, stride=2, padding=0)]
+        return F.max_pool2d(x, kernel_size=1, stride=2, padding=0)
 
 
 class LastLevelP6P7(nn.Module):
@@ -249,8 +237,8 @@ class LastLevelP6P7(nn.Module):
 
     def forward(self, c5):
         p6 = self.p6(c5)
-        p7 = self.p7(F.relu(p6))
-        return [p6, p7]
+        # p7 = self.p7(F.relu(p6))
+        return p6
 
 
 @BACKBONE_REGISTRY.register()
