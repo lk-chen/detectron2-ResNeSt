@@ -92,6 +92,9 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
             dict: has a key "segm", whose value is a dict of "AP", "AP50", and "AP75".
         """
         bashCommand = "bash ./run_evaluation.sh"
+        # Run eval by loading the tsinghua dataset.
+        if "tsinghua" in self._dataset_name:
+            bashCommand = "bash ./run_evaluation.sh tsinghua"
         process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         output_lines = output.decode("utf-8")
