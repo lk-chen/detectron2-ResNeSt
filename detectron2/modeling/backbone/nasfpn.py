@@ -48,6 +48,7 @@ class NASFPN(Backbone):
         """
         super(NASFPN, self).__init__()
         assert isinstance(bottom_up, Backbone)
+        assert top_block is not None, "must pass top_block, otherwise P6 doesn't exist"
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
@@ -59,37 +60,25 @@ class NASFPN(Backbone):
 
         _assert_strides_are_log2_contiguous(in_strides)
         lateral_convs = []
-        output_convs = []
 
         use_bias = norm == ""
-        for idx, in_channels in enumerate(in_channels):
+        for idx, in_channels_ in enumerate(in_channels):
             lateral_norm = get_norm(norm, out_channels)
             output_norm = get_norm(norm, out_channels)
 
             lateral_conv = Conv2d(
-                in_channels, out_channels, kernel_size=1, bias=use_bias, norm=lateral_norm
-            )
-            output_conv = Conv2d(
-                out_channels,
-                out_channels,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias=use_bias,
-                norm=output_norm,
+                in_channels_, out_channels, kernel_size=1, bias=use_bias, norm=lateral_norm
             )
             weight_init.c2_xavier_fill(lateral_conv)
-            weight_init.c2_xavier_fill(output_conv)
             stage = int(math.log2(in_strides[idx]))
             self.add_module("fpn_lateral{}".format(stage), lateral_conv)
-            self.add_module("fpn_output{}".format(stage), output_conv)
 
             lateral_convs.append(lateral_conv)
-            output_convs.append(output_conv)
         # Place convs into top-down order (from low to high resolution)
         # to make the top-down computation in forward clearer.
         self.lateral_convs = lateral_convs[::-1]
-        self.output_convs = output_convs[::-1]
+        self.lateral_conv_p6 = Conv2d(
+            in_channels[-1], out_channels, kernel_size=1, bias=use_bias, norm=get_norm(norm, out_channels))
         self.top_block = top_block
         self.in_features = in_features
         self.bottom_up = bottom_up
@@ -151,12 +140,13 @@ class NASFPN(Backbone):
         SUM4_RCB = self.rcbs['SUM4'](SUM4)
         SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
 
-        P6 = None
-        if self.top_block is not None:
-            top_block_in_feature = bottom_up_features.get(self.top_block.in_feature, None)
-            # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
-            # we don't have result, so use bottom_up_features["res5"]
-            P6 = (self.top_block(top_block_in_feature))
+        print(self.top_block.in_feature)
+        print(bottom_up_features.keys())
+        top_block_in_feature = bottom_up_features['res5']
+        # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
+        # we don't have result, so use bottom_up_features["res5"]
+        P6 = (self.top_block(top_block_in_feature))
+        P6 = self.lateral_conv_p6(P6)
         SUM5 = sum_fm(SUM4_RCB_GP, P6)
         SUM5_RCB = self.rcbs['SUM5'](SUM5)
         h, w = bottom_up_features["res5"].shape[1], bottom_up_features["res5"].shape[2]
@@ -240,7 +230,7 @@ class LastLevelMaxPool(nn.Module):
         self.in_feature = "p5"
 
     def forward(self, x):
-        return [F.max_pool2d(x, kernel_size=1, stride=2, padding=0)]
+        return F.max_pool2d(x, kernel_size=1, stride=2, padding=0)
 
 
 class LastLevelP6P7(nn.Module):
@@ -260,8 +250,8 @@ class LastLevelP6P7(nn.Module):
 
     def forward(self, c5):
         p6 = self.p6(c5)
-        p7 = self.p7(F.relu(p6))
-        return [p6, p7]
+        # p7 = self.p7(F.relu(p6))
+        return p6
 
 
 @BACKBONE_REGISTRY.register()
