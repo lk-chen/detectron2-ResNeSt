@@ -14,7 +14,7 @@ __all__ = ["register_pascal_voc"]
 
 # fmt: off
 ENABLING_CLASSES = [
-    'car', 'pedestrain', 'cyclist', 'person',
+    'car', 'pedestrian', 'cyclist', 'person',
 ]
 CLASS_NAMES = [
     'car', 'van', 'truck', 'pedestrian', 'person',
