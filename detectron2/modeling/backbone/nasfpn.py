@@ -3,6 +3,7 @@ import math
 import fvcore.nn.weight_init as weight_init
 import torch.nn.functional as F
 from torch import nn
+import torch
 
 from detectron2.layers import Conv2d, ShapeSpec, get_norm
 
@@ -50,7 +51,7 @@ class NASFPN(Backbone):
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
         input_shapes = bottom_up.output_shape()
-        print("input shapes")
+        print("input shapes new")
         print(input_shapes)
 
         in_strides = [input_shapes[f].stride for f in in_features]
@@ -123,10 +124,11 @@ class NASFPN(Backbone):
                 paper convention: "p<stage>", where stage has stride = 2 ** stage e.g.,
                 ["p2", "p3", ..., "p6"].
         """
+        print("Get into NASFPN forward")
         # Reverse feature maps into top-down order (from low to high resolution)
         bottom_up_features = self.bottom_up(x)
         print(bottom_up_features.keys())
-        GP_P5_P3 = gp(bottom_up_features["res5"])
+        GP_P5_P3 = gp(bottom_up_features["res5"], bottom_up_features["res3"])
         GP_P5_P3_RCB = self.RCB(GP_P5_P3)
         SUM1 = sum_fm(GP_P5_P3_RCB, bottom_up_features["res3"])
         SUM1_RCB = self.RCB(SUM1)
@@ -152,7 +154,10 @@ class NASFPN(Backbone):
         SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
         SUM4_RCB_GP1_RCB = self.RCB(SUM4_RCB_GP1)
 
-        return {"p2": SUM_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB, "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
+        res = {"p2": SUM_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB, "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
+        print("res: ")
+        print(res)
+        return res
 
     def output_shape(self):
         return {
@@ -173,9 +178,12 @@ def _assert_strides_are_log2_contiguous(strides):
         )
 
 def gp(fm1, fm2):
+    print("fm1 shape: " + str(fm1.shape))
+    print("fm2 shape: " + str(fm2.shape))
     h, w = fm1.shape[1], fm1.shape[2]
     global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
+    print("global_ctx shape: " + str(global_ctx.shape))
     output = (global_ctx * fm2) + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
@@ -192,10 +200,12 @@ class RCB(nn.Module):
     def __init__(self, in_channels, out_channels, norm):
         super().__init__()
         self.R = nn.ReLU()
-        self.C = Conv2D(in_channels, out_channels, 3)
+        self.C = Conv2d(in_channels, out_channels, 3)
         self.B = get_norm(norm, out_channels)
+        print("RCB created")
 
     def forward(self, x):
+        print("RCB forward called")
         return self.B(self.C(self.R(x)))
 
 
