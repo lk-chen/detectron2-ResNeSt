@@ -125,19 +125,26 @@ class NASFPN(Backbone):
                 ["p2", "p3", ..., "p6"].
         """
         print("Get into NASFPN forward")
+
         # Reverse feature maps into top-down order (from low to high resolution)
         bottom_up_features = self.bottom_up(x)
         print(bottom_up_features.keys())
-        GP_P5_P3 = gp(bottom_up_features["res5"], bottom_up_features["res3"])
+
+        # following features have different num_channels, need to convert
+        lateral_features_dict = {
+            f: self.lateral_convs[idx](bottom_up_features[f]) for idx, f in enumerate(self.in_features[::-1])
+        }
+
+        GP_P5_P3 = gp(lateral_features_dict["res5"], lateral_features_dict["res3"])
         GP_P5_P3_RCB = self.RCB(GP_P5_P3)
-        SUM1 = sum_fm(GP_P5_P3_RCB, bottom_up_features["res3"])
+        SUM1 = sum_fm(GP_P5_P3_RCB, lateral_features_dict["res3"])
         SUM1_RCB = self.RCB(SUM1)
-        SUM2 = sum_fm(SUM1_RCB, bottom_up_features["res2"])
+        SUM2 = sum_fm(SUM1_RCB, lateral_features_dict["res2"])
         SUM2_RCB = self.RCB(SUM2)
         SUM3 = sum_fm(SUM2_RCB, SUM1_RCB)
         SUM3_RCB = self.RCB(SUM3)
         SUM3_RCB_GP = gp(SUM2_RCB, SUM3_RCB)
-        SUM4 = sum_fm(SUM3_RCB_GP, bottom_up_features["res4"])
+        SUM4 = sum_fm(SUM3_RCB_GP, lateral_features_dict["res4"])
         SUM4_RCB = self.RCB(SUM4)
         SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
 
@@ -178,17 +185,22 @@ def _assert_strides_are_log2_contiguous(strides):
         )
 
 def gp(fm1, fm2):
+    # fm.shape is like [batch_size, c, h, w]
     print("fm1 shape: " + str(fm1.shape))
     print("fm2 shape: " + str(fm2.shape))
-    h, w = fm1.shape[1], fm1.shape[2]
-    global_ctx = torch.mean(fm1, (1, 2), keepdim=True)
+    global_ctx = torch.mean(fm1, (2, 3), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
     print("global_ctx shape: " + str(global_ctx.shape))
-    output = (global_ctx * fm2) + F.interpolate(fm1, (h, w), mode='bilinear')
+    h, w = fm2.shape[2], fm2.shape[3]
+    op2 = F.interpolate(fm1, (h, w), mode='bilinear')
+    print("op2 shape: " + str(op2.shape))
+    op1 = (global_ctx * fm2)
+    print("op1 shape: " + str(op1.shape))
+    output = op1 + op2
     return output
 
 def sum_fm(fm1, fm2):
-    h, w = fm2.shape[1], fm2.shape[2]
+    h, w = fm2.shape[2], fm2.shape[3]
     output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
