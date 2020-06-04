@@ -84,6 +84,8 @@ class NASFPN(Backbone):
         self.rcbs = {
             k: RCB(out_channels, out_channels, 'BN') for k in ['GP_P5_P3', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'SUM5', 'SUM4_RCB_GP1']
         }
+        for k, rcb in self.rcbs.items():
+            self.add_module("nasfpn_RCB{}".format(k), rcb)
         # Return feature names are "p<stage>", like ["p2", "p3", ..., "p6"]
         self._out_feature_strides = {"p{}".format(int(math.log2(s))): s for s in in_strides}
         # top block output feature maps.
