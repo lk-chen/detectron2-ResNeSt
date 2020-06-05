@@ -1,4 +1,4 @@
-_BASE_: "kitti-nasfpn-resnest-101.yaml"
+_BASE_: "kitti-faster-rcnn-resnest-nasfpn-101.yaml"
 OUTPUT_DIR: './output/nasfpn_resnest_101_cyclist/'
 MODEL:
   PIXEL_MEAN: [73.10043784, 80.65596148, 65.41796925]
