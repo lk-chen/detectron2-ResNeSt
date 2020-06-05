@@ -1,0 +1,70 @@
+_BASE_: "kitti-faster-rcnn-resnest-50.yaml"
+OUTPUT_DIR: './output/nas/'
+MODEL:
+  # WEIGHTS: "/demo-mount/models/resnest_101_cyclist_lr_005/model_final.pth"
+  WEIGHTS: "https://hangzh.s3-us-west-1.amazonaws.com/encoding/models/resnest101_detectron-486f69a8.pth"
+  RESNETS:
+    DEPTH: 101
+TEST:
+  EVAL_PERIOD: 1000
+  PRECISE_BN:
+    ENABLED: True
+SOLVER:
+  STEPS: (12000, 16000)
+  MAX_ITER: 20000
+  WARMUP_ITERS: 10
+  GAMMA: 0.1
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.02
+  CHECKPOINT_PERIOD: 1000
+TEST:
+  EVAL_PERIOD: 1000
+  PRECISE_BN:
+    ENABLED: True
+
+# ./output/resnest_101_cyclist_lr_005/model_final.pth -> 
+# [06/02 18:49:26 d2.evaluation.testing:23]: copypaste: Task: cyclist_detection AP
+# [06/02 18:49:26 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 18:49:26 d2.evaluation.testing:25]: copypaste: 45.3900,33.9900,32.0000
+
+
+# ./output/resnest_101_kitti_cyclist_pretrain_lr_02/model_final.pth
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: car_detection AP
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 96.1500,86.0700,73.1400
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: car_orientation AOS
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 58.8100,47.7800,40.3500
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: pedestrian_detection AP
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 78.1700,66.4000,61.4900
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: pedestrian_orientation AOS
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 31.1300,26.0500,24.1300
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: cyclist_detection AP
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 63.6400,42.6900,41.8900
+# [06/02 19:02:31 d2.evaluation.testing INFO:23]: copypaste: Task: cyclist_orientation AOS
+# [06/02 19:02:31 d2.evaluation.testing INFO:24]: copypaste: easy,medium,hard
+# [06/02 19:02:31 d2.evaluation.testing INFO:25]: copypaste: 31.6900,23.0000,22.7800
+
+
+# ./output/resnest_101_kitti_cyclist_pretrain_lr_02/model_0004999.pth
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: car_detection AP
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 93.6900,82.9500,69.3800
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: car_orientation AOS
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 56.5500,44.1300,36.2000
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: pedestrian_detection AP
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 87.2800,76.0500,71.1500
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: pedestrian_orientation AOS
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 35.2600,29.8000,27.9100
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: cyclist_detection AP
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 75.0400,58.8800,55.4600
+# [06/02 19:19:12 d2.evaluation.testing:23]: copypaste: Task: cyclist_orientation AOS
+# [06/02 19:19:12 d2.evaluation.testing:24]: copypaste: easy,medium,hard
+# [06/02 19:19:12 d2.evaluation.testing:25]: copypaste: 41.7700,37.0100,35.0800
