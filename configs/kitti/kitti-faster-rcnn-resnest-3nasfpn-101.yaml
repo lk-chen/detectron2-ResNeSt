@@ -1,0 +1,4 @@
+_BASE_: "./kitti-faster-rcnn-resnest-nasfpn-101.yaml"
+MODEL:
+  NASFPN:
+    STACK_NUM: 3
