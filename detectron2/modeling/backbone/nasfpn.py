@@ -201,7 +201,6 @@ def gp(fm1, fm2):
     global_ctx = torch.mean(fm1, (2, 3), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
     h, w = fm2.shape[2], fm2.shape[3]
-    print("h:{} w:{}".format(h, w))
     op2 = F.interpolate(fm1, (h, w), mode='bilinear')
     op1 = (global_ctx * fm2)
     output = op1 + op2
@@ -210,7 +209,6 @@ def gp(fm1, fm2):
 
 def sum_fm(fm1, fm2):
     h, w = fm2.shape[2], fm2.shape[3]
-    print("h:{} w:{}".format(h, w))
     output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
