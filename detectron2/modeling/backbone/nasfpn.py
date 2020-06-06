@@ -156,7 +156,6 @@ class NASFPN(Backbone):
 
         p2, p3, p4, p5, p6 = None, None, None, None, None
         for i in range(self.stack_num):
-            print("NAS_FPN_{}".format(i))
             if i == 0:
                 p2 = lateral_features_dict["res2"]
                 p3 = lateral_features_dict["res3"]
@@ -224,7 +223,6 @@ class RCB(nn.Module):
         self.C = Conv2d(in_channels, out_channels, 3, bias=False, padding=1,
                         norm=get_norm(norm, out_channels)).cuda()
         weight_init.c2_xavier_fill(self.C)
-        print("RCB created")
 
     def forward(self, x):
         return self.C(F.relu(x))
