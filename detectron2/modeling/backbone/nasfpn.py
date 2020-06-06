@@ -108,11 +108,6 @@ class NASFPN(Backbone):
         return self._size_divisibility
 
     def nasfpn_structure(self, rcbs, p2, p3, p4, p5, p6):
-        # print("p2 size " + str(p2.shape))
-        # print("p3 size " + str(p3.shape))
-        # print("p4 size " + str(p4.shape))
-        # print("p5 size " + str(p5.shape))
-        # print("p6 size " + str(p6.shape))
         GP_P5_P3 = gp(p5, p3)
         GP_P5_P3_RCB = rcbs['GP_P5_P3'](GP_P5_P3)
         SUM1 = sum_fm(GP_P5_P3_RCB, p3)
@@ -161,7 +156,6 @@ class NASFPN(Backbone):
 
         p2, p3, p4, p5, p6 = None, None, None, None, None
         for i in range(self.stack_num):
-            print("NASFPN_{}".format(i))
             if i == 0:
                 p2 = lateral_features_dict["res2"]
                 p3 = lateral_features_dict["res3"]
@@ -207,6 +201,7 @@ def gp(fm1, fm2):
     global_ctx = torch.mean(fm1, (2, 3), keepdim=True)
     global_ctx = torch.sigmoid(global_ctx)
     h, w = fm2.shape[2], fm2.shape[3]
+    print("h:{} w:{}".format(h, w))
     op2 = F.interpolate(fm1, (h, w), mode='bilinear')
     op1 = (global_ctx * fm2)
     output = op1 + op2
@@ -215,6 +210,7 @@ def gp(fm1, fm2):
 
 def sum_fm(fm1, fm2):
     h, w = fm2.shape[2], fm2.shape[3]
+    print("h:{} w:{}".format(h, w))
     output = fm2 + F.interpolate(fm1, (h, w), mode='bilinear')
     return output
 
@@ -226,7 +222,7 @@ class RCB(nn.Module):
 
     def __init__(self, in_channels, out_channels, norm):
         super().__init__()
-        self.C = Conv2d(in_channels, out_channels, 3, bias=False,
+        self.C = Conv2d(in_channels, out_channels, 3, bias=True, padding=1,
                         norm=get_norm(norm, out_channels)).cuda()
         weight_init.c2_xavier_fill(self.C)
         print("RCB created")
