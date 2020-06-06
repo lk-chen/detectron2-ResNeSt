@@ -122,7 +122,7 @@ class NASFPN(Backbone):
         SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
         SUM5 = sum_fm(SUM4_RCB_GP, p6)
         SUM5_RCB = rcbs['SUM5'](SUM5)
-        h, w = p5.shape[1], p5.shape[2]
+        h, w = p5.shape[2], p5.shape[3]
         SUM5_RCB_resize = F.interpolate(SUM5_RCB, size=(h, w), mode='bilinear')
         SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
         SUM4_RCB_GP1_RCB = rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
@@ -156,6 +156,7 @@ class NASFPN(Backbone):
 
         p2, p3, p4, p5, p6 = None, None, None, None, None
         for i in range(self.stack_num):
+            print("NAS_FPN_{}".format(i))
             if i == 0:
                 p2 = lateral_features_dict["res2"]
                 p3 = lateral_features_dict["res3"]
@@ -220,7 +221,7 @@ class RCB(nn.Module):
 
     def __init__(self, in_channels, out_channels, norm):
         super().__init__()
-        self.C = Conv2d(in_channels, out_channels, 3, bias=True, padding=1,
+        self.C = Conv2d(in_channels, out_channels, 3, bias=False, padding=1,
                         norm=get_norm(norm, out_channels)).cuda()
         weight_init.c2_xavier_fill(self.C)
         print("RCB created")
