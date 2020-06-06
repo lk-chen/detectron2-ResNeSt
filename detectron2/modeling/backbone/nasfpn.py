@@ -21,7 +21,7 @@ class NASFPN(Backbone):
     """
 
     def __init__(
-        self, bottom_up, in_features, out_channels, norm="", top_block=None, fuse_type="sum"
+        self, bottom_up, in_features, out_channels, norm="", top_block=None, fuse_type="sum", stack_num=1
     ):
         """
         Args:
@@ -81,11 +81,15 @@ class NASFPN(Backbone):
         self.in_features = in_features
         self.bottom_up = bottom_up
         # self.RCB = RCB(in_channels, out_channels, norm)
-        self.rcbs = {
-            k: RCB(out_channels, out_channels, 'BN') for k in ['GP_P5_P3', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'SUM5', 'SUM4_RCB_GP1']
-        }
-        for k, rcb in self.rcbs.items():
-            self.add_module("nasfpn_RCB{}".format(k), rcb)
+        self.rcb_list = []
+        self.stack_num = stack_num
+        for i in range(stack_num):
+            self.rcbs = {
+                k: RCB(out_channels, out_channels, norm) for k in ['GP_P5_P3', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'SUM5', 'SUM4_RCB_GP1']
+            }
+            self.rcb_list.append(self.rcbs)
+            for k, rcb in self.rcbs.items():
+                self.add_module("nasfpn_RCB_{}_{}".format(i, k), rcb)
         # Return feature names are "p<stage>", like ["p2", "p3", ..., "p6"]
         self._out_feature_strides = {"p{}".format(int(math.log2(s))): s for s in in_strides}
         # top block output feature maps.
@@ -102,6 +106,35 @@ class NASFPN(Backbone):
     @property
     def size_divisibility(self):
         return self._size_divisibility
+
+    def nasfpn_structure(self, rcbs, p2, p3, p4, p5, p6):
+        # print("p2 size " + str(p2.shape))
+        # print("p3 size " + str(p3.shape))
+        # print("p4 size " + str(p4.shape))
+        # print("p5 size " + str(p5.shape))
+        # print("p6 size " + str(p6.shape))
+        GP_P5_P3 = gp(p5, p3)
+        GP_P5_P3_RCB = rcbs['GP_P5_P3'](GP_P5_P3)
+        SUM1 = sum_fm(GP_P5_P3_RCB, p3)
+        SUM1_RCB = rcbs['SUM1'](SUM1)
+        SUM2 = sum_fm(SUM1_RCB, p2)
+        SUM2_RCB = rcbs['SUM2'](SUM2)
+        SUM3 = sum_fm(SUM2_RCB, SUM1_RCB)
+        SUM3_RCB = rcbs['SUM3'](SUM3)
+        SUM3_RCB_GP = gp(SUM2_RCB, SUM3_RCB)
+        SUM4 = sum_fm(SUM3_RCB_GP, p4)
+        SUM4_RCB = rcbs['SUM4'](SUM4)
+        SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
+        SUM5 = sum_fm(SUM4_RCB_GP, p6)
+        SUM5_RCB = rcbs['SUM5'](SUM5)
+        h, w = p5.shape[1], p5.shape[2]
+        SUM5_RCB_resize = F.interpolate(SUM5_RCB, size=(h, w), mode='bilinear')
+        SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
+        SUM4_RCB_GP1_RCB = rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
+
+        res = {"p2": SUM2_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
+               "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
+        return res
 
     def forward(self, x):
         """
@@ -126,34 +159,29 @@ class NASFPN(Backbone):
             f: self.lateral_convs[idx](bottom_up_features[f]) for idx, f in enumerate(self.in_features[::-1])
         }
 
-        GP_P5_P3 = gp(lateral_features_dict["res5"], lateral_features_dict["res3"])
-        GP_P5_P3_RCB = self.rcbs['GP_P5_P3'](GP_P5_P3)
-        SUM1 = sum_fm(GP_P5_P3_RCB, lateral_features_dict["res3"])
-        SUM1_RCB = self.rcbs['SUM1'](SUM1)
-        SUM2 = sum_fm(SUM1_RCB, lateral_features_dict["res2"])
-        SUM2_RCB = self.rcbs['SUM2'](SUM2)
-        SUM3 = sum_fm(SUM2_RCB, SUM1_RCB)
-        SUM3_RCB = self.rcbs['SUM3'](SUM3)
-        SUM3_RCB_GP = gp(SUM2_RCB, SUM3_RCB)
-        SUM4 = sum_fm(SUM3_RCB_GP, lateral_features_dict["res4"])
-        SUM4_RCB = self.rcbs['SUM4'](SUM4)
-        SUM4_RCB_GP = gp(SUM1_RCB, SUM4_RCB)
+        p2, p3, p4, p5, p6 = None, None, None, None, None
+        for i in range(self.stack_num):
+            print("NASFPN_{}".format(i))
+            if i == 0:
+                p2 = lateral_features_dict["res2"]
+                p3 = lateral_features_dict["res3"]
+                p4 = lateral_features_dict["res4"]
+                p5 = lateral_features_dict["res5"]
 
-        top_block_in_feature = bottom_up_features['res5']
-        # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
-        # we don't have result, so use bottom_up_features["res5"]
-        P6 = (self.top_block(top_block_in_feature))
-        P6 = self.lateral_conv_p6(P6)
-        SUM5 = sum_fm(SUM4_RCB_GP, P6)
-        SUM5_RCB = self.rcbs['SUM5'](SUM5)
-        h, w = bottom_up_features["res5"].shape[1], bottom_up_features["res5"].shape[2]
-        SUM5_RCB_resize = F.interpolate(SUM5_RCB, size=(h, w), mode='bilinear')
-        SUM4_RCB_GP1 = gp(SUM4_RCB, SUM5_RCB_resize)
-        SUM4_RCB_GP1_RCB = self.rcbs['SUM4_RCB_GP1'](SUM4_RCB_GP1)
+                top_block_in_feature = bottom_up_features['res5']
+                # In original implmentation, this uses results["res5"], when we implement NAS-FPN,
+                # we don't have result, so use bottom_up_features["res5"]
+                p6 = (self.top_block(top_block_in_feature))
+                p6 = self.lateral_conv_p6(p6)
+            else:
+                p2 = x["p2"]
+                p3 = x["p3"]
+                p4 = x["p4"]
+                p5 = x["p5"]
+                p6 = x["p6"]
+            x = self.nasfpn_structure(self.rcb_list[i], p2, p3, p4, p5, p6)
+        return x
 
-        res = {"p2": SUM2_RCB, "p3": SUM3_RCB, "p4": SUM4_RCB,
-               "p5": SUM4_RCB_GP1_RCB, "p6": SUM5_RCB}
-        return res
 
     def output_shape(self):
         return {
