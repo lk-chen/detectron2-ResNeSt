@@ -158,10 +158,11 @@ _C.MODEL.NASFPN.IN_FEATURES = []
 _C.MODEL.NASFPN.OUT_CHANNELS = 256
 
 # Options: "" (no norm), "GN"
-_C.MODEL.NASFPN.NORM = ""
+_C.MODEL.NASFPN.NORM = "SyncBN"
 
 # Types for fusing the NASFPN top-down and lateral features. Can be either "sum" or "avg"
 _C.MODEL.NASFPN.FUSE_TYPE = "sum"
+_C.MODEL.NASFPN.STACK_NUM = 1
 
 
 # ---------------------------------------------------------------------------- #

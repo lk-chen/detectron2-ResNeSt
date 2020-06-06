@@ -283,6 +283,7 @@ def build_resnet_nasfpn_backbone(cfg, input_shape: ShapeSpec):
         norm=cfg.MODEL.NASFPN.NORM,
         top_block=LastLevelMaxPool(),
         fuse_type=cfg.MODEL.NASFPN.FUSE_TYPE,
+        stack_num=cfg.MODEL.NASFPN.STACK_NUM
     )
     return backbone
 
@@ -307,5 +308,6 @@ def build_retinanet_resnet_nasfpn_backbone(cfg, input_shape: ShapeSpec):
         norm=cfg.MODEL.NASFPN.NORM,
         top_block=LastLevelP6P7(in_channels_p6p7, out_channels),
         fuse_type=cfg.MODEL.NASFPN.FUSE_TYPE,
+        stack_num=cfg.MODEL.NASFPN.STACK_NUM
     )
     return backbone
